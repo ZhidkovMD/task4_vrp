@@ -241,3 +241,66 @@ Pn razd(string& data, int num, string file_debug = ""){
     return Pn(stod(buf.substr(0, pos)), stod(buf.substr(pos + tr)), num, d);
 }
 
+int main() {
+    vector <string> data = lfls("data");
+    string buf;
+    ofstream fout;
+    fout.open("result.txt");
+    string x;
+    int n;
+    for (int k = 0; k < data.size(); k++) {
+        n = 0;
+        x = data[k];
+        cout << "Opening " << x << endl << flush;
+        vector <Pn> cords;
+        ifstream file("data/" + x);
+        getline(file, buf);
+        Pn enterd = razd(buf, 0);
+        while (getline(file, buf)) {
+            if ((buf == "") || (buf == " ")) {
+                continue;
+            }
+            cords.push_back(razd(buf, n));
+            n++;
+        }
+        file.close();
+        vector <double> transp(enterd.x, 0);
+        double limit = enterd.y;
+        int it = 0;
+        int p = 1;
+        double result = 0;
+        while (p < cords.size()) {
+            auto center = cords[p];
+            vector <Pn> itdata;
+            itdata.push_back(cords[0]);
+            sort(cords.begin() + p, cords.end(), [&](Pn a, Pn b) {return rast(a, center) < rast(b, center); });
+            while ((p < cords.size()) && (it < transp.size() - 1) && (transp[it] + cords[p].price < limit)) {
+                transp[it] = transp[it] + cords[p].price;
+                itdata.push_back(cords[p]);
+                p++;
+            }
+            it = it + 1;
+            if (it == transp.size() - 1) {
+                vector <int> f_result_cycle;
+                while (p < cords.size()) {
+                    transp[it] += cords[p].price;
+                    itdata.push_back(cords[p]);
+                    p++;
+                }
+            }
+            auto bufres = TSP_eng(itdata);
+            result = result + bufres.first;
+            if (true) {
+                fout << it << ": ";
+                for (auto l : bufres.second) {
+                    fout << l << " ";
+                }
+                fout << endl;
+            }
+        }
+        fout << x << result << endl;
+        cout << x << endl << flush;
+    }
+    fout.close();
+}
+
